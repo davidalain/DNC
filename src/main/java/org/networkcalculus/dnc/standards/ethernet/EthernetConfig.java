@@ -41,7 +41,7 @@ public class EthernetConfig {
 
 		final Curve factory = Curve.getFactory();
 
-		this.mapCurves = new HashMap<EthernetConfig.EthernetInterfaceConfig, Pair<ServiceCurve,MaxServiceCurve>>();
+		this.mapCurves = new HashMap<EthernetInterfaceConfig, Pair<ServiceCurve,MaxServiceCurve>>();
 
 		//TODO: fix curves values
 		final Pair<ServiceCurve, MaxServiceCurve> curve10Mbps = new Pair<ServiceCurve, MaxServiceCurve>(
@@ -81,7 +81,7 @@ public class EthernetConfig {
 	 * @param ethernetSpeed
 	 * @return
 	 */
-	public Pair<ServiceCurve,MaxServiceCurve> getCurves(EthernetConfig.EthernetInterfaceConfig ethernetSpeed){
+	public Pair<ServiceCurve,MaxServiceCurve> getCurves(EthernetInterfaceConfig ethernetSpeed){
 		return this.mapCurves.get(ethernetSpeed);
 	}
 
