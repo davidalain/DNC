@@ -1,18 +1,14 @@
 package org.networkcalculus.dnc.standards.ethernet;
 
+import java.security.InvalidParameterException;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import org.apache.commons.math3.util.Pair;
-import org.networkcalculus.dnc.curves.MaxServiceCurve;
-import org.networkcalculus.dnc.curves.ServiceCurve;
 import org.networkcalculus.dnc.network.server_graph.Server;
 import org.networkcalculus.dnc.network.server_graph.Turn;
-import org.networkcalculus.dnc.standards.ethernet.EthernetConfig.EthernetInterfaceConfig;
 
 /**
  * 
@@ -24,107 +20,160 @@ public abstract class EthernetDevice {
 	protected String deviceName;
 	protected EthernetNetwork network;
 
-	protected Map<Integer, Server> outputServers;
-	protected Map<Integer, EthernetDevice> neighbors;
+	protected Map<Integer, EthernetInterface> interfaces; //<Interface ID, Ethernet interface>
+	protected Set<EthernetLink> links;
 
-	/**
-	 * Turn links two adjacent servers on flows' direction.
-	 * This maps the output interface's Server (accordingly to its interfaceId) to (output interface) Servers in the linked Ethernet device neighbor  
-	 */
-	protected Map<Integer, List<Turn>> turns;
-
+	protected Map<EthernetInterface, Turn> inputTurns; //Input turns coming from neighbor. EthernetInterface = output interface.
+	protected Map<EthernetInterface, Turn> outputTurns; //Output turns going to neighbor. EthernetInterface = output interface.
 
 	public EthernetDevice(EthernetNetwork network, String deviceName) {
 		this.deviceName = deviceName;
 		this.network = network;
 
-		this.outputServers = new HashMap<Integer, Server>();
-		this.neighbors = new HashMap<Integer, EthernetDevice>();
-		this.turns = new HashMap<Integer, List<Turn>>();
+		this.interfaces = new HashMap<Integer, EthernetInterface>();
+
+		this.links = new HashSet<EthernetLink>();
+		this.inputTurns = new HashMap<>();
+		this.outputTurns = new HashMap<>();
 	}
 
-	public Server getServer(Integer interfaceId) {
-		return this.outputServers.get(interfaceId);
+	public String getDeviceName() {
+		return deviceName;
 	}
 
-	public void setServer(Integer interfaceId, Server server) {
-		this.outputServers.put(interfaceId, server);
-	}
-	
-	public List<Server> getAllServers() {
-		return new LinkedList<>(this.outputServers.values());
+	public void setDeviceName(String deviceName) {
+		this.deviceName = deviceName;
 	}
 
-	public EthernetDevice getNeibour(Integer interfaceId) {
-		return this.neighbors.get(interfaceId);
-	}
-	
-	public List<EthernetDevice> getAllNeibours() {
-		return new LinkedList<EthernetDevice>(this.neighbors.values());
-	}
-	
-	public Set<Map.Entry<Integer, EthernetDevice>> getAllNeiboursEntrySet() {
-		return this.neighbors.entrySet();
+	public EthernetNetwork getNetwork() {
+		return network;
 	}
 
-	public void setNeighbor(Integer interfaceId, EthernetDevice neighborDevice, Integer neighborInterfaceId) throws Exception {
-		setNeighbor(this, interfaceId, neighborDevice, neighborInterfaceId); //Creates path from this to neighborDevice 
-		setNeighbor(neighborDevice, neighborInterfaceId, this, interfaceId); //Creates path from neighborDevice to this
+	public void setNetwork(EthernetNetwork network) {
+		this.network = network;
 	}
 
-	private void setNeighbor(EthernetDevice sourceDevice, Integer sourceInterfaceId, EthernetDevice sinkDevice, Integer sinkInterfaceId) throws Exception {
+	public Set<Map.Entry<Integer, EthernetInterface>> getInterfacesEntrySet() {
+		return interfaces.entrySet();
+	}
 
-		final List<Turn> turnsFromSource = new LinkedList<Turn>();
-		final Server outServerFromSource = sourceDevice.outputServers.get(sourceInterfaceId);
+	public Set<EthernetInterface> getInterfaces() {
+		return new HashSet<EthernetInterface>(this.interfaces.values());
+	}
 
-		for(Map.Entry<Integer,Server> entry : sinkDevice.outputServers.entrySet()) {
+	public EthernetInterface getInterface(int interfaceId) {
+		return interfaces.get(interfaceId);
+	}
 
-			//Does not create Turn with input interfaces' Server, only with output interfaces' Servers
-			//Flow passes through Ethernet devices and does not echoing on them 
-			if(!entry.getKey().equals(sinkInterfaceId)) {
-				final Server neighbourServer = entry.getValue();
-				final Turn t = sourceDevice.network.getServerGraph().addTurn(outServerFromSource.getAlias() + "->" + neighbourServer.getAlias(), outServerFromSource, neighbourServer);
-				turnsFromSource.add(t);
-			}
+	public void setInterface(Integer interfaceId, EthernetInterface ethernetInterface) {
+		this.interfaces.put(interfaceId, ethernetInterface);
+	}
+
+	public Set<EthernetDevice> getNeighbors() {
+		final Set<EthernetDevice> list = new HashSet<EthernetDevice>();
+
+		for(EthernetLink link : this.links) {
+			list.add(link.getNeighbor(this));
 		}
 
-		sourceDevice.neighbors.put(sourceInterfaceId, sinkDevice);
-		sourceDevice.turns.put(sourceInterfaceId, turnsFromSource);
+		return list;
 	}
 
-	protected void setServer(Integer interfaceId, ServiceCurve serviceCurve, MaxServiceCurve maxServiceCurve) {
+	public Map<EthernetInterface, Turn> getInputTurns() {
+		return inputTurns;
+	}
+
+	public void setInputTurns(Map<EthernetInterface, Turn> turns) {
+		this.inputTurns = turns;
+	}
+	
+	public Map<EthernetInterface, Turn> getOutputTurns() {
+		return outputTurns;
+	}
+
+	public void setOutputTurns(Map<EthernetInterface, Turn> turns) {
+		this.outputTurns = turns;
+	}
+	
+	public void setNeighbor(int interfaceId, EthernetDevice neighborDevice, int neighborInterfaceId) throws Exception {
+
+		final EthernetInterface sourceEthernetInterface = this.getInterface(interfaceId);
+		final EthernetInterface sinkDeviceInterface = neighborDevice.getInterface(neighborInterfaceId);
+
+		this.setNeighbor(sourceEthernetInterface, sinkDeviceInterface);
+	}
+
+	public void setNeighbor(EthernetInterface outputInterface, EthernetInterface neighborInputInterface) throws Exception {
 		
-		final Server server = this.network.getServerGraph().addServer(serviceCurve, maxServiceCurve);
-		server.setAlias(this.deviceName+"."+interfaceId);
+		final EthernetLink link = new EthernetLink(outputInterface, neighborInputInterface);
 
-		this.outputServers.put(interfaceId, server);
-	}
-	
-	protected void setServer(Integer interfaceId, EthernetInterfaceConfig config) {
+		if(!Objects.equals(this, outputInterface.getEthernetDeviceOwner())) 
+			throw new InvalidParameterException("this EthernetDevice instance must be the owner of outputInterface");
 		
-		final Pair<ServiceCurve,MaxServiceCurve> pair = EthernetConfig.getInstance().getCurves(config);
-		setServer(interfaceId, pair.getFirst(), pair.getSecond());
+		if(this.links.contains(link))
+			throw new InvalidParameterException("link is already added to this device");
+		if(neighborInputInterface.getEthernetDeviceOwner().links.contains(link))
+			throw new InvalidParameterException("link is already added to neighbor device");
+		
+		this.links.add(link);
+		neighborInputInterface.getEthernetDeviceOwner().links.add(link);
+
+		this.addTurn(outputInterface, neighborInputInterface);
 	}
 	
-	public List<Turn> getTurns(Integer interfaceId){
-		return this.turns.get(interfaceId);
+	protected void addTurn(EthernetInterface outputInterface, EthernetInterface neighborInputInterface) throws Exception {
+
+		if(!Objects.equals(this, outputInterface.getEthernetDeviceOwner()))
+			throw new InvalidParameterException("");
+		
+		//Add turns in this device
+		addTurnOutput(outputInterface, neighborInputInterface);
+		addTurnInput(outputInterface, neighborInputInterface);
+		
+		//Add turns in neighbor device
+		addTurnOutput(neighborInputInterface, outputInterface);
+		addTurnInput(neighborInputInterface, outputInterface);
+		
 	}
 	
-	public List<List<Turn>> getAllTurns(){
-		return new LinkedList<List<Turn>>(this.turns.values());
-	}
-	
-	public Set<Map.Entry<Integer, List<Turn>>> getAllTurnsEntrySet(){
-		return this.turns.entrySet();
+	private void addTurnOutput(EthernetInterface outputInterface, EthernetInterface neighborInputInterface) throws Exception {
+		
+		if(outputInterface == null)
+			throw new InvalidParameterException("outputInterface must not be null");
+		if(neighborInputInterface == null)
+			throw new InvalidParameterException("neighborInputInterface must not be null");
+		
+		final EthernetDevice ethernetDevice = outputInterface.getEthernetDeviceOwner();
+
+		final Server forwardSourceServer = outputInterface.getOutputServer();
+		final Server forwardSinkServer = neighborInputInterface.getInputServer();
+		final String turnAlias = forwardSourceServer.getAlias() + "->" + forwardSinkServer.getAlias();
+		final Turn outputTurn = ethernetDevice.network.getServerGraph().addTurn(turnAlias, forwardSourceServer, forwardSinkServer);
+
+		ethernetDevice.outputTurns.put(outputInterface, outputTurn);
 	}
 
-	public int getInterfacesCount() {
-		return this.outputServers.size();
+	private void addTurnInput(EthernetInterface outputInterface, EthernetInterface neighborInputInterface) throws Exception {
+		
+		if(outputInterface == null)
+			throw new InvalidParameterException("outputInterface must not be null");
+		if(neighborInputInterface == null)
+			throw new InvalidParameterException("neighborInputInterface must not be null");
+		
+		final EthernetDevice ethernetDevice = outputInterface.getEthernetDeviceOwner();
+
+		final Server backwardSourceServer = neighborInputInterface.getOutputServer();
+		final Server backwardSinkServer = outputInterface.getInputServer();
+		final String turnAlias = backwardSourceServer.getAlias() + "->" + backwardSinkServer.getAlias();
+		final Turn inputTurn = ethernetDevice.network.getServerGraph().addTurn(turnAlias, backwardSourceServer, backwardSinkServer);
+
+		ethernetDevice.inputTurns.put(outputInterface, inputTurn);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(deviceName, outputServers, network, turns);
+		//Note: do not use this.neighbors in hash calculation. This makes a recursive call of this method and generates StackOverflowException.
+		return Objects.hash(this.deviceName, this.interfaces, this.network);
 	}
 
 	@Override
@@ -135,15 +184,14 @@ public abstract class EthernetDevice {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		
+
+		//Note: do not use this.neighbors in equals comparison. This makes a recursive call of this method and generates StackOverflowException.
 		EthernetDevice other = (EthernetDevice) obj;
-		return 	Objects.equals(deviceName, other.deviceName) &&
-				Objects.equals(neighbors, other.neighbors) &&
-				Objects.equals(outputServers, other.outputServers) &&
-				Objects.equals(network, other.network) &&
-				Objects.equals(turns, other.turns);
+		return 	Objects.equals(this.deviceName, other.deviceName) &&
+				Objects.equals(this.interfaces, other.interfaces) &&
+				Objects.equals(this.network, other.network);
 	}
-	
+
 	@Override
 	public abstract String toString();
 
