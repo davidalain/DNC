@@ -28,7 +28,7 @@ public class EthernetInterfaceSpeedConfig {
 		s_100Mbps,
 		s_1000Mbps,
 
-//		s_switchingFabric_unlimited,
+		//		s_switchingFabric_unlimited,
 	}
 
 	/**
@@ -45,24 +45,20 @@ public class EthernetInterfaceSpeedConfig {
 
 		this.mapCurves = new HashMap<EthernetInterfaceSpeed, Pair<ServiceCurve,MaxServiceCurve>>();
 
-		//TODO: fix curves values
+		//TODO: fix curves parameters values
 		this.mapCurves.put(EthernetInterfaceSpeed.s_10Mbps,  new Pair<ServiceCurve, MaxServiceCurve>(
-				factory.createRateLatency(10.0e6, 0.01), 
-				factory.createRateLatencyMSC(100.0e6, 0.001)));
+				factory.createRateLatency(		10e6, 10e-6		), 		//10Mbps / 10ms
+				factory.createRateLatencyMSC(	10e6, 10e-6		)));	//10Mbps / 10ms
 
-		//TODO: fix curves values
+		//TODO: fix curves parameters values
 		this.mapCurves.put(EthernetInterfaceSpeed.s_100Mbps, new Pair<ServiceCurve, MaxServiceCurve>(
-				factory.createRateLatency(10.0e6, 0.01), 
-				factory.createRateLatencyMSC(100.0e6, 0.001)));
+				factory.createRateLatency(		100e6, 1e-6		), 		//100Mbps / 1ms
+				factory.createRateLatencyMSC(	100e6, 1e-6		)));	//100Mbps / 1ms
 
-		//TODO: fix curves values
+		//TODO: fix curves parameters values
 		this.mapCurves.put(EthernetInterfaceSpeed.s_1000Mbps, new Pair<ServiceCurve, MaxServiceCurve>(
-				factory.createRateLatency(10.0e6, 0.01), 
-				factory.createRateLatencyMSC(100.0e6, 0.001)));
-
-//		this.mapCurves.put(EthernetInterfaceSpeed.s_switchingFabric_unlimited, new Pair<ServiceCurve, MaxServiceCurve>(
-//				factory.createZeroDelayInfiniteBurst(), 
-//				factory.createZeroDelayInfiniteBurstMSC()));
+				factory.createRateLatency(		1000e6, 0.1e-6	), 		//1000Mbps / 0.1ms
+				factory.createRateLatencyMSC(	1000e6, 0.1e-6	)));	//1000Mbps / 0.1ms
 	}
 
 	/**

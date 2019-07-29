@@ -23,8 +23,8 @@ public abstract class EthernetDevice {
 	protected Map<Integer, EthernetInterface> interfaces; //<Interface ID, Ethernet interface>
 	protected Set<EthernetLink> links;
 
-	protected Map<EthernetInterface, Turn> inputTurns; //Input turns coming from neighbor. EthernetInterface = output interface.
-	protected Map<EthernetInterface, Turn> outputTurns; //Output turns going to neighbor. EthernetInterface = output interface.
+	protected Map<EthernetInterface, Turn> neighborInputTurns; //Input turns coming from neighbor. EthernetInterface = output interface.
+	protected Map<EthernetInterface, Turn> neighborOutputTurns; //Output turns going to neighbor. EthernetInterface = output interface.
 
 	public EthernetDevice(EthernetNetwork network, String deviceName) {
 		this.deviceName = deviceName;
@@ -33,8 +33,10 @@ public abstract class EthernetDevice {
 		this.interfaces = new HashMap<Integer, EthernetInterface>();
 
 		this.links = new HashSet<EthernetLink>();
-		this.inputTurns = new HashMap<>();
-		this.outputTurns = new HashMap<>();
+		this.neighborInputTurns = new HashMap<>();
+		this.neighborOutputTurns = new HashMap<>();
+		
+		this.network.addDevice(this);
 	}
 
 	public String getDeviceName() {
@@ -79,20 +81,20 @@ public abstract class EthernetDevice {
 		return list;
 	}
 
-	public Map<EthernetInterface, Turn> getInputTurns() {
-		return inputTurns;
+	public Map<EthernetInterface, Turn> getNeighborInputTurns() {
+		return neighborInputTurns;
 	}
 
-	public void setInputTurns(Map<EthernetInterface, Turn> turns) {
-		this.inputTurns = turns;
+	public void setNeighborInputTurns(Map<EthernetInterface, Turn> turns) {
+		this.neighborInputTurns = turns;
 	}
 	
-	public Map<EthernetInterface, Turn> getOutputTurns() {
-		return outputTurns;
+	public Map<EthernetInterface, Turn> getNeighborOutputTurns() {
+		return neighborOutputTurns;
 	}
 
-	public void setOutputTurns(Map<EthernetInterface, Turn> turns) {
-		this.outputTurns = turns;
+	public void setNeighborOutputTurns(Map<EthernetInterface, Turn> turns) {
+		this.neighborOutputTurns = turns;
 	}
 	
 	public void setNeighbor(int interfaceId, EthernetDevice neighborDevice, int neighborInterfaceId) throws Exception {
@@ -150,7 +152,7 @@ public abstract class EthernetDevice {
 		final String turnAlias = forwardSourceServer.getAlias() + "->" + forwardSinkServer.getAlias();
 		final Turn outputTurn = ethernetDevice.network.getServerGraph().addTurn(turnAlias, forwardSourceServer, forwardSinkServer);
 
-		ethernetDevice.outputTurns.put(outputInterface, outputTurn);
+		ethernetDevice.neighborOutputTurns.put(outputInterface, outputTurn);
 	}
 
 	private void addTurnInput(EthernetInterface outputInterface, EthernetInterface neighborInputInterface) throws Exception {
@@ -167,7 +169,7 @@ public abstract class EthernetDevice {
 		final String turnAlias = backwardSourceServer.getAlias() + "->" + backwardSinkServer.getAlias();
 		final Turn inputTurn = ethernetDevice.network.getServerGraph().addTurn(turnAlias, backwardSourceServer, backwardSinkServer);
 
-		ethernetDevice.inputTurns.put(outputInterface, inputTurn);
+		ethernetDevice.neighborInputTurns.put(outputInterface, inputTurn);
 	}
 
 	@Override

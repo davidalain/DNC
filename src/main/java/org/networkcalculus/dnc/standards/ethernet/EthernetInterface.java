@@ -31,7 +31,7 @@ public class EthernetInterface {
 
 		this.ethernetDeviceOwner = ethernetDeviceOwner;
 		this.interfaceId = interfaceId;
-		this.setInterfaceSpeed(interfaceSpeed);
+		this.interfaceSpeed = interfaceSpeed;
 		
 		this.setInputServer(interfaceSpeed);
 		this.setOutputServer(interfaceSpeed);
