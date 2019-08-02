@@ -16,7 +16,7 @@ public class EthernetEndSystem extends EthernetDevice{
 	}
 
 	public String toString() {
-		return (this.deviceName);
+		return (this.name);
 	}
 	
 }

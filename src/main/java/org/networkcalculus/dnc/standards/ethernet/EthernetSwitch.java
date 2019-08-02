@@ -82,7 +82,7 @@ public class EthernetSwitch extends EthernetDevice{
 
 	@Override
 	public String toString() {
-		return (this.deviceName);
+		return (this.name);
 	}
 
 }

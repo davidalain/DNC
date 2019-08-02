@@ -17,7 +17,7 @@ import org.networkcalculus.dnc.network.server_graph.Turn;
  */
 public abstract class EthernetDevice {
 
-	protected String deviceName;
+	protected String name; //Device name
 	protected EthernetNetwork network;
 
 	protected Map<Integer, EthernetInterface> interfaces; //<Interface ID, Ethernet interface>
@@ -27,7 +27,7 @@ public abstract class EthernetDevice {
 	protected Map<EthernetInterface, Turn> neighborOutputTurns; //Output turns going to neighbor. EthernetInterface = output interface.
 
 	public EthernetDevice(EthernetNetwork network, String deviceName) {
-		this.deviceName = deviceName;
+		this.name = deviceName;
 		this.network = network;
 
 		this.interfaces = new HashMap<Integer, EthernetInterface>();
@@ -39,12 +39,12 @@ public abstract class EthernetDevice {
 		this.network.addDevice(this);
 	}
 
-	public String getDeviceName() {
-		return deviceName;
+	public String getName() {
+		return name;
 	}
 
-	public void setDeviceName(String deviceName) {
-		this.deviceName = deviceName;
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public EthernetNetwork getNetwork() {
@@ -175,7 +175,7 @@ public abstract class EthernetDevice {
 	@Override
 	public int hashCode() {
 		//Note: do not use this.neighbors in hash calculation. This makes a recursive call of this method and generates StackOverflowException.
-		return Objects.hash(this.deviceName, this.interfaces, this.network);
+		return Objects.hash(this.name, this.interfaces, this.network);
 	}
 
 	@Override
@@ -189,7 +189,7 @@ public abstract class EthernetDevice {
 
 		//Note: do not use this.neighbors in equals comparison. This makes a recursive call of this method and generates StackOverflowException.
 		EthernetDevice other = (EthernetDevice) obj;
-		return 	Objects.equals(this.deviceName, other.deviceName) &&
+		return 	Objects.equals(this.name, other.name) &&
 				Objects.equals(this.interfaces, other.interfaces) &&
 				Objects.equals(this.network, other.network);
 	}

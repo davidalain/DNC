@@ -35,6 +35,9 @@ public class EthernetInterface {
 		
 		this.setInputServer(interfaceSpeed);
 		this.setOutputServer(interfaceSpeed);
+		
+		//Adds the output server related to Ethernet device 
+		this.ethernetDeviceOwner.getNetwork().putServerDevice(this.outputServer, this.ethernetDeviceOwner);
 	}
 
 	public EthernetDevice getEthernetDeviceOwner() {
@@ -135,7 +138,7 @@ public class EthernetInterface {
 
 	@Override
 	public String toString() {
-		return this.ethernetDeviceOwner.getDeviceName() + ".eth" + Integer.toString(interfaceId);
+		return this.ethernetDeviceOwner.getName() + ".eth" + Integer.toString(interfaceId);
 	}
 
 	@Override
