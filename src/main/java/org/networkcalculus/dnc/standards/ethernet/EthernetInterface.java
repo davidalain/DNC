@@ -143,7 +143,7 @@ public class EthernetInterface {
 
 	@Override
 	public int hashCode() {
-		//Note: do not use this.ethernetDevice in hash calculation. This make a recursive call of this method and generates StackOverflowException.
+		//Note: do not use this.ethernetDevice in hash calculation. This make a infinite recursive call of hashCode() method and produces StackOverflowError exception.
 		return Objects.hash(this.toString(), this.interfaceId);
 	}
 
@@ -157,7 +157,7 @@ public class EthernetInterface {
 			return false;
 		EthernetInterface other = (EthernetInterface) obj;
 
-		//Note: do not use this.ethernetDevice in equals comparison. This make a recursive call of this method and generates StackOverflowException.
+		//Note: do not use this.ethernetDevice in equals comparison. This make a infinite recursive call of equals() method and produces StackOverflowError exception.
 		return Objects.equals(this.toString(), other.toString()) && 
 				Objects.equals(this.interfaceId, other.interfaceId);
 	}

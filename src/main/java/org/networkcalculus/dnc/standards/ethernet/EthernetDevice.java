@@ -174,7 +174,7 @@ public abstract class EthernetDevice {
 
 	@Override
 	public int hashCode() {
-		//Note: do not use this.neighbors in hash calculation. This makes a recursive call of this method and generates StackOverflowException.
+		//Note: do not use this.neighbors in hash calculation. This makes a infinite recursive call of hashCode() method and produces StackOverflowError exception.
 		return Objects.hash(this.name, this.interfaces, this.network);
 	}
 
@@ -187,7 +187,7 @@ public abstract class EthernetDevice {
 		if (getClass() != obj.getClass())
 			return false;
 
-		//Note: do not use this.neighbors in equals comparison. This makes a recursive call of this method and generates StackOverflowException.
+		//Note: do not use this.neighbors in equals comparison. This makes a infinite recursive call of equals() method and produces StackOverflowError exception.
 		EthernetDevice other = (EthernetDevice) obj;
 		return 	Objects.equals(this.name, other.name) &&
 				Objects.equals(this.interfaces, other.interfaces) &&
