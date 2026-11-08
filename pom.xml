@@ -12,6 +12,7 @@
 	</description>
 	<url>networkcalculus.org</url>
 
+	<!-- Using DNC's fork repo -->
 	<groupId>io.github.davidalain</groupId>
 	<artifactId>netcal-dnc</artifactId>
 	<version>2.8.2</version>
