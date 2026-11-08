@@ -452,10 +452,10 @@ public class ServerGraph {
 
 	public Turn addTurn(String alias, Server source, Server destination) throws Exception {
 		if (!servers.contains(source)) {
-			throw new Exception("turn's source not present in the server graph");
+			throw new Exception("turn's source not present in the server graph. source: " + source.getAlias());
 		}
 		if (!servers.contains(destination)) {
-			throw new Exception("turn's destination not present in the server graph");
+			throw new Exception("turn's destination not present in the server graph. destination: " + destination.getAlias());
 		}
 
 		try {
